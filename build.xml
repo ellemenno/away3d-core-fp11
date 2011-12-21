@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="away3d-core-fp11" default="-usage" basedir=".">
+
+<description>
+Packages and documents the away3d library.
+</description>
+	
+	<property file="${user.home}/build.properties"/>
+
+	<!-- Fail when FLEX_HOME isn't set -->
+	<fail unless="FLEX_HOME">In ${user.home}/build.properties, please set the FLEX_HOME property to a valid path for the Flex SDK on your machine.</fail>
+	
+	<property name="flex.lib" location="${FLEX_HOME}/lib" />
+	<property name="flex.frameworks" location="${FLEX_HOME}/frameworks" />
+	
+	<target name="-usage"> <!-- not providing description to avoid showing up in -projecthelp -->
+		<echo message="${ant.project.name}" />
+		<java classname="org.apache.tools.ant.Main">
+			<arg value="-projecthelp" />
+		</java>
+	</target>
+	
+	<macrodef name="compc">
+		<attribute name="file"/>
+		<attribute name="options" default=""/>
+		<sequential>
+			<echo message="- - compc macro - -"/>
+			<echo message="creating '@{file}'"/>
+			
+			<java 
+				jar="${flex.lib}/compc.jar"
+				dir="${flex.frameworks}"
+				fork="true"
+				failonerror="true"
+				>
+				<arg line="@{options}"/>
+				<arg value="-output=@{file}"/>
+			</java>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="asdoc">
+		<attribute name="dir"/>
+		<attribute name="options" default=""/>
+		<sequential>
+			<echo message="- - asdoc macro - -"/>
+			<echo message="generating docs into '@{dir}'"/>
+			
+			<java 
+				jar="${flex.lib}/asdoc.jar"
+				dir="${flex.frameworks}"
+				fork="true"
+				failonerror="true"
+				>
+				<arg line="@{options}"/>
+				<arg value="-output=@{dir}"/>
+			</java>
+		</sequential>
+	</macrodef>
+	
+	
+	<property name="version" value="4.0.110915" />
+	<property name="dir.source" location="${basedir}/src"/>
+	<property name="dir.target" location="${basedir}/target"/>
+	<property name="dir.release" location="${basedir}/release"/>
+	<property name="dir.docs" location="${basedir}/docs"/>
+	
+	
+	<target name="clean" description="removes the contents of target folder">
+		<delete failonerror="true" includeemptydirs="true">
+			<fileset dir="${dir.target}" includes="${ant.project.name}*"/>
+			<fileset dir="${dir.release}" includes="${ant.project.name}*"/>
+		</delete>
+	</target>
+	
+	
+    <target name="compile" depends="clean" description="compiles swc into target folder">
+
+		<local name="filename"/>       <property name="filename" value="${ant.project.name}-${version}"/>
+		<local name="filepath"/>       <property name="filepath" value="${dir.target}"/>
+		<local name="source-path"/>    <property name="source-path" value="-source-path=${dir.source}"/>
+    	<local name="include-sources"/><property name="include-sources" value="-include-sources=${dir.source}"/>
+		<compc 
+			file="${filepath}/${filename}.swc" 
+			options="${source-path} ${include-sources}"
+			/>
+	</target>
+	
+	
+    <target name="document" description="builds asdocs into docs folder">
+
+		<local name="destination"/><property name="destination" value="${dir.docs}"/>
+		<local name="source-path"/><property name="source-path" value="-source-path=${dir.source}"/>
+    	<local name="doc-sources"/><property name="doc-sources" value="-doc-sources=${dir.source}"/>
+    	<local name="main-title"/><property name="main-title" value="-main-title='${ant.project.name} v${version}'"/>
+		<asdoc 
+			dir="${destination}" 
+			options="${doc-sources} ${source-path} ${main-title}"
+			/>
+	</target>
+	
+	<target name="release" depends="compile" description="copies release build into release folder">
+		<copy file="${dir.target}/${ant.project.name}-${version}.swc" todir="${dir.release}" />
+	</target>
+				
+</project>
