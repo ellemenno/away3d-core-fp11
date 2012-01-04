@@ -3,12 +3,12 @@ package away3d.core.base
 	import away3d.animators.data.AnimationBase;
 	import away3d.animators.data.AnimationStateBase;
 	import away3d.arcane;
+	import away3d.cameras.Camera3D;
 	import away3d.core.managers.Stage3DProxy;
 	import away3d.entities.Entity;
 	import away3d.entities.Mesh;
 	import away3d.materials.MaterialBase;
 
-	import flash.display3D.Context3D;
 	import flash.display3D.IndexBuffer3D;
 	import flash.display3D.VertexBuffer3D;
 	import flash.geom.Matrix;

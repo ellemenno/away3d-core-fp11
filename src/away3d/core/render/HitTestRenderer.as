@@ -21,6 +21,7 @@ package away3d.core.render
 	import flash.display3D.Context3DTriangleFace;
 	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.display3D.Program3D;
+	import flash.display3D.textures.TextureBase;
 	import flash.geom.Matrix3D;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -114,10 +115,10 @@ package away3d.core.render
 			_hitUV = null;
 			_potentialFound = false;
 
-			draw(entityCollector);
+			draw(entityCollector, null);
 
 			// clear buffers
-			_stage3DProxy.setSimpleVertexBuffer(0, null);
+			_stage3DProxy.setSimpleVertexBuffer(0, null, null);
 
 			if (!_context || !_potentialFound) return;
 			_context.drawToBitmapData(_bitmapData);
@@ -164,8 +165,11 @@ package away3d.core.render
 		/**
 		 * @inheritDoc
 		 */
-		override protected function draw(entityCollector : EntityCollector) : void
+		override protected function draw(entityCollector : EntityCollector, target : TextureBase) : void
 		{
+			// TODO: not used
+			target = target; 
+			
 			var camera : Camera3D = entityCollector.camera;
 
 			_context.clear(0, 0, 0, 1);
@@ -189,6 +193,9 @@ package away3d.core.render
 		 */
 		private function drawRenderables(item : RenderableListItem, camera : Camera3D) : void
 		{
+			// TODO: not used
+			camera = camera; 
+			
 			var renderable : IRenderable;
 
 			while (item) {
@@ -209,7 +216,7 @@ package away3d.core.render
 				_id[1] = (_interactiveId >> 8)/255;	    // on green channel
 				_id[2] = (_interactiveId & 0xff)/255;  	// on blue channel
 
-				_context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, renderable.modelViewProjection, true);
+				_context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, renderable.getModelViewProjectionUnsafe(), true);
 				_context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, _id, 1);
 				_stage3DProxy.setSimpleVertexBuffer(0, renderable.getVertexBuffer(_stage3DProxy), Context3DVertexBufferFormat.FLOAT_3);
 				_context.drawTriangles(renderable.getIndexBuffer(_stage3DProxy), 0, renderable.numTriangles);
@@ -294,6 +301,9 @@ package away3d.core.render
 		 */
 		private function getApproximatePosition(camera : Camera3D) : void
 		{
+			// TODO: not used
+			camera = camera;
+			 
 			var entity : Entity = _hitRenderable.sourceEntity;
 			var col : uint;
 			var scX : Number, scY : Number, scZ : Number;
@@ -418,6 +428,12 @@ package away3d.core.render
 			}
 		}
 
+		arcane override function dispose() : void
+		{
+			super.dispose();
+			_bitmapData.dispose();
+		}
+
 		/**
 		 * Finds the precise hit position by unprojecting the screen coordinate back unto the hit face's plane and
 		 * calculating the intersection point.
@@ -432,6 +448,9 @@ package away3d.core.render
 		 */
 		private function getPrecisePosition(camera : Camera3D, invSceneTransform : Matrix3D, nx : Number, ny : Number, nz : Number, px : Number, py : Number, pz : Number) : void
 		{
+			// TODO: not used
+			camera = camera;
+			 
 			// calculate screen ray and find exact intersection position with triangle
 			var rx : Number, ry : Number, rz : Number;
 			var ox : Number, oy : Number, oz : Number;

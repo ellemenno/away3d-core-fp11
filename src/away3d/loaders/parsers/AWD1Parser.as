@@ -5,11 +5,11 @@ package away3d.loaders.parsers
 	import away3d.core.base.Geometry;
 	import away3d.core.base.SubGeometry;
 	import away3d.entities.Mesh;
-	import away3d.library.assets.BitmapDataAsset;
 	import away3d.loaders.misc.ResourceDependency;
 	import away3d.loaders.parsers.utils.ParserUtil;
-	import away3d.materials.BitmapMaterial;
-	import away3d.tools.utils.TextureUtils;
+	import away3d.materials.TextureMaterial;
+	import away3d.textures.BitmapTexture;
+	import away3d.textures.Texture2DBase;
 	
 	import flash.geom.Matrix3D;
 	import flash.net.URLRequest;
@@ -96,20 +96,17 @@ package away3d.loaders.parsers
 		 */
 		override arcane function resolveDependency(resourceDependency:ResourceDependency):void
 		{
-			var resource : BitmapDataAsset;
+			var asset : Texture2DBase;
+			var m:Mesh; 
 			
 			if (resourceDependency.assets.length != 1)
 				return;
 			
-			resource = resourceDependency.assets[0] as BitmapDataAsset;
+			asset = resourceDependency.assets[0] as Texture2DBase;
+			m = retrieveMeshFromID(resourceDependency.id);
 			
-			if (resource){
-				var m:Mesh = retrieveMeshFromID(resourceDependency.id);
-				
-				if(m != null && resource.bitmapData && isBitmapDataValid(resource.bitmapData))
-					BitmapMaterial(m.material).bitmapData = resource.bitmapData;
-			}
-			
+			if(m && asset)
+				TextureMaterial(m.material).texture = asset;
 		}
 		
 		/**
@@ -181,7 +178,9 @@ package away3d.loaders.parsers
 					_buffer = 0;
 					//unused in f11
 					if(_state == "#v")
-						var version:String = line.substring(3,line.length-1);
+						// TODO: not used
+						// var version:String = 
+						line.substring(3,line.length-1);
 					
 					if(_state == "#f")
 						_isMaterial = (parseInt(line.substring(3,4)) == 2) as Boolean;
@@ -284,7 +283,7 @@ package away3d.loaders.parsers
 							_aC[ref.container].addChild(mesh);
 						
 						mesh.transform = ref.transform;
-						mesh.material = new BitmapMaterial(defaultBitmapData);
+						mesh.material = new TextureMaterial( new BitmapTexture(defaultBitmapData) );
 						mesh.material.name = ref.name;
 						
 						addDependency(ref.name, new URLRequest(ref.material));

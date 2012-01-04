@@ -3,6 +3,7 @@ package away3d.containers
 	import away3d.arcane;
 	import away3d.cameras.Camera3D;
 	import away3d.core.managers.Mouse3DManager;
+	import away3d.core.managers.RTTBufferManager;
 	import away3d.core.managers.Stage3DManager;
 	import away3d.core.managers.Stage3DProxy;
 	import away3d.core.render.DefaultRenderer;
@@ -10,16 +11,16 @@ package away3d.containers
 	import away3d.core.render.Filter3DRenderer;
 	import away3d.core.render.RendererBase;
 	import away3d.core.traverse.EntityCollector;
+	import away3d.lights.DirectionalLight;
 	import away3d.lights.LightBase;
-
-	import flash.display.BitmapData;
+	import away3d.lights.PointLight;
+	import away3d.textures.Texture2DBase;
 
 	import flash.display.Sprite;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DTextureFormat;
 	import flash.display3D.textures.Texture;
 	import flash.events.Event;
-	import flash.geom.Matrix3D;
 	import flash.geom.Point;
 	import flash.geom.Transform;
 	import flash.geom.Vector3D;
@@ -53,20 +54,19 @@ package away3d.containers
 		private var _filter3DRenderer : Filter3DRenderer;
 		private var _requireDepthRender : Boolean;
 		private var _depthRender : Texture;
-		private var _depthTextureWidth : int = -1;
-		private var _depthTextureHeight : int = -1;
 		private var _depthTextureInvalid : Boolean = true;
 
 		private var _hitField : Sprite;
 		private var _parentIsStage : Boolean;
 
-		private var _backgroundImage : BitmapData;
-		private var _bgImageFitToViewPort:Boolean = true;
+		private var _background : Texture2DBase;
 		private var _stage3DProxy : Stage3DProxy;
 		private var _backBufferInvalid : Boolean = true;
 		private var _antiAlias : uint;
 
-		public function View3D(scene : Scene3D = null, camera : Camera3D = null, renderer : DefaultRenderer = null)
+		private var _rttBufferManager : RTTBufferManager;
+
+		public function View3D(scene : Scene3D = null, camera : Camera3D = null, renderer : RendererBase = null)
 		{
 			super();
 
@@ -75,8 +75,10 @@ package away3d.containers
 			_renderer = renderer || new DefaultRenderer();
 			_mouse3DManager = new Mouse3DManager(this);
 			_depthRenderer = new DepthRenderer();
-			_entityCollector = new EntityCollector();
-			
+
+			// todo: entity collector should be defined by renderer
+			_entityCollector = _renderer.createEntityCollector();
+
 			initHitField();
 			
 			addEventListener(Event.ADDED_TO_STAGE, onAddedToStage, false, 0, true);
@@ -104,28 +106,15 @@ package away3d.containers
 			_mouse3DManager.forceMouseMove = value;
 		}
 
-		public function get backgroundImage() : BitmapData
+		public function get background() : Texture2DBase
 		{
-			return _backgroundImage;
+			return _background;
 		}
 
-		public function set backgroundImageFitToViewPort(value:Boolean):void
+		public function set background(value : Texture2DBase) : void
 		{
-			_bgImageFitToViewPort = value;
-
-			if(_renderer.backgroundImageRenderer == null)
-				return;
-
-			_renderer.backgroundImageRenderer.fitToViewPort = value;
-		}
-
-		public function set backgroundImage(value : BitmapData) : void
-		{
-			_backgroundImage = value;
-			_renderer.backgroundImage = _backgroundImage;
-			_renderer.backgroundImageRenderer.viewWidth = _width;
-			_renderer.backgroundImageRenderer.viewHeight = _height;
-			_renderer.backgroundImageRenderer.fitToViewPort = _bgImageFitToViewPort;
+			_background = value;
+			_renderer.background = _background;
 		}
 
 		private function initHitField() : void
@@ -170,7 +159,7 @@ package away3d.containers
 				_filter3DRenderer.dispose();
 				_filter3DRenderer = null;
 			} else if (!_filter3DRenderer && value) {
-				_filter3DRenderer = new Filter3DRenderer(_width, _height);
+				_filter3DRenderer = new Filter3DRenderer(stage3DProxy);
 				_filter3DRenderer.filters = value;
 			}
 
@@ -198,13 +187,16 @@ package away3d.containers
 		{
 			_renderer.dispose();
 			_renderer = value;
+			_entityCollector = _renderer.createEntityCollector();
 			_renderer.stage3DProxy = _stage3DProxy;
+			_renderer.antiAlias = _antiAlias;
 			_renderer.backgroundR = ((_backgroundColor >> 16) & 0xff) / 0xff;
 			_renderer.backgroundG = ((_backgroundColor >> 8) & 0xff) / 0xff;
 			_renderer.backgroundB = (_backgroundColor & 0xff) / 0xff;
 			_renderer.backgroundAlpha = _backgroundAlpha;
-			_renderer.backgroundImage = _backgroundImage;
-			
+			_renderer.viewWidth = _width;
+			_renderer.viewHeight = _height;
+
 			invalidateBackBuffer();
 		}
 
@@ -304,20 +296,17 @@ package away3d.containers
 		{
 			if (_width == value)
 				return;
-			
+
+			if (_rttBufferManager)
+				_rttBufferManager.viewWidth = value;
+
 			_hitField.width = value;
 			_width = value;
 			_aspectRatio = _width/_height;
 			_depthTextureInvalid = true;
-			
-			if (_filter3DRenderer)
-				_filter3DRenderer.viewWidth = value;
-			
-			if (_renderer.backgroundImageRenderer != null) {
-				_renderer.backgroundImageRenderer.viewWidth = _width;
-				_renderer.backgroundImageRenderer.viewHeight = _height;
-			}
-			
+
+			_renderer.viewWidth = value;
+
 			invalidateBackBuffer();
 		}
 
@@ -333,14 +322,16 @@ package away3d.containers
 		{
 			if (_height == value)
 				return;
-			
+
+			if (_rttBufferManager)
+				_rttBufferManager.viewHeight = value;
+
 			_hitField.height = value;
 			_height = value;
 			_aspectRatio = _width/_height;
 			_depthTextureInvalid = true;
-			
-			if (_filter3DRenderer)
-				_filter3DRenderer.viewHeight = value;
+
+			_renderer.viewHeight = value;
 			
 			invalidateBackBuffer();
 		}
@@ -379,6 +370,7 @@ package away3d.containers
 		public function set antiAlias(value : uint) : void
 		{
 			_antiAlias = value;
+			_renderer.antiAlias = value;
 			
 			invalidateBackBuffer();
 		}
@@ -417,7 +409,7 @@ package away3d.containers
 			
 			_entityCollector.clear();
 			
-			updateCamera();
+			updateViewSizeData();
 
 			// collect stuff to render
 			_scene.traversePartitions(_entityCollector);
@@ -426,13 +418,13 @@ package away3d.containers
 			if (_entityCollector.numMouseEnableds > 0)
 				_mouse3DManager.updateHitData();
 
-			updateLights(_entityCollector);
+//			updateLights(_entityCollector);
 
 			if (_requireDepthRender)
 				renderSceneDepth(_entityCollector);
 
 			if (_filter3DRenderer && _stage3DProxy._context3D) {
-				_renderer.render(_entityCollector, _filter3DRenderer.getMainInputTexture(_stage3DProxy), _filter3DRenderer.renderRect);
+				_renderer.render(_entityCollector, _filter3DRenderer.getMainInputTexture(_stage3DProxy), _rttBufferManager.renderToTextureRect);
 				_filter3DRenderer.render(_stage3DProxy, camera, _depthRender);
 				_stage3DProxy._context3D.present();
 			} else {
@@ -462,18 +454,18 @@ package away3d.containers
 			_time = time;
 		}
 
-		private function updateCamera() : void
+		private function updateViewSizeData() : void
 		{
 			_camera.lens.aspectRatio = _aspectRatio;
 			_entityCollector.camera = _camera;
 
-			if (_filter3DRenderer) {
-				_camera.textureRatioX = _width/_filter3DRenderer.textureWidth;
-				_camera.textureRatioY = _height/_filter3DRenderer.textureHeight;
+			if (_filter3DRenderer || _renderer.renderToTexture) {
+				_renderer.textureRatioX = _rttBufferManager.textureRatioX;
+				_renderer.textureRatioY = _rttBufferManager.textureRatioY;
 			}
 			else {
-				_camera.textureRatioX = 1;
-				_camera.textureRatioY = 1;
+				_renderer.textureRatioX = 1;
+				_renderer.textureRatioY = 1;
 			}
 		}
 		
@@ -485,44 +477,11 @@ package away3d.containers
 
 		private function initDepthTexture(context : Context3D) : void
 		{
-			var w : int = getPowerOf2Exceeding(_width);
-			var h : int = getPowerOf2Exceeding(_height);
-
 			_depthTextureInvalid = false;
-
-			if (w == _depthTextureWidth && h == _depthTextureHeight) return;
-
-			_depthTextureWidth = w;
-			_depthTextureHeight = h;
 
 			if (_depthRender) _depthRender.dispose();
 
-			_depthRender = context.createTexture(w, h, Context3DTextureFormat.BGRA, true);
-		}
-
-		private function getPowerOf2Exceeding(value : int) : Number
-		{
-			var p : int = 1;
-
-			while (p < value && p < 2048)
-				p <<= 1;
-
-			if (p > 2048) p = 2048;
-
-			return p;
-		}
-
-		private function updateLights(entityCollector : EntityCollector) : void
-		{
-			var lights : Vector.<LightBase> = entityCollector.lights;
-			var len : uint = lights.length;
-			var light : LightBase;
-
-			for (var i : int = 0; i < len; ++i) {
-				light = lights[i];
-				if (light.castsShadows)
-					light.shadowMapper.renderDepthMap(_renderer.stage3DProxy, entityCollector, _depthRenderer);
-			}
+			_depthRender = context.createTexture(_rttBufferManager.textureWidth, _rttBufferManager.textureHeight, Context3DTextureFormat.BGRA, true);
 		}
 
 		/**
@@ -533,9 +492,18 @@ package away3d.containers
 			_stage3DProxy.dispose();
 			_renderer.dispose();
 			_mouse3DManager.dispose();
-			if (_depthRenderer) _depthRenderer.dispose();
+			_depthRenderer.dispose();
 			_mouse3DManager.dispose();
 			if (_depthRender) _depthRender.dispose();
+			if (_rttBufferManager) _rttBufferManager.dispose();
+
+			_rttBufferManager = null;
+			_depthRender = null;
+			_mouse3DManager = null;
+			_depthRenderer = null;
+			_stage3DProxy = null;
+			_renderer = null;
+			_entityCollector = null;
 		}
 
 		public function project(point3d : Vector3D) : Point
@@ -575,13 +543,16 @@ package away3d.containers
 			_addedToStage = true;
 
 			_stage3DManager = Stage3DManager.getInstance(stage);
-
-			if (_width == 0) width = stage.stageWidth;
-			if (_height == 0) height = stage.stageHeight;
-
 			_stage3DProxy = _stage3DManager.getFreeStage3DProxy();
 			_stage3DProxy.x = _globalPos.x;
+			_rttBufferManager = RTTBufferManager.getInstance(_stage3DProxy);
 			_stage3DProxy.y = _globalPos.y;
+
+			if (_width == 0) width = stage.stageWidth;
+			else _rttBufferManager.viewWidth = _width;
+			if (_height == 0) height = stage.stageHeight;
+			else _rttBufferManager.viewHeight = _height;
+
 			_renderer.stage3DProxy = _depthRenderer.stage3DProxy = _mouse3DManager.stage3DProxy = _stage3DProxy;
 		}
 
