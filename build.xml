@@ -60,7 +60,7 @@ Packages and documents the away3d library.
 	</macrodef>
 	
 	
-	<property name="version" value="4.0.110915" />
+	<property name="version" value="4.0.111227" />
 	<property name="dir.source" location="${basedir}/src"/>
 	<property name="dir.target" location="${basedir}/target"/>
 	<property name="dir.release" location="${basedir}/release"/>
@@ -70,7 +70,6 @@ Packages and documents the away3d library.
 	<target name="clean" description="removes the contents of target folder">
 		<delete failonerror="true" includeemptydirs="true">
 			<fileset dir="${dir.target}" includes="${ant.project.name}*"/>
-			<fileset dir="${dir.release}" includes="${ant.project.name}*"/>
 		</delete>
 	</target>
 	
