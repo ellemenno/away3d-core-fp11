@@ -103,6 +103,6 @@ Packages and documents the away3d library.
 		<copy file="${dir.target}/${ant.project.name}-${version}.swc" todir="${dir.release}" />
 	</target>
 
-	<target name="all" description="> ant -Dversion=4.yymmdd all" depends="release, document" />
+	<target name="all" description="> ant -Dversion=4.0.yymmdd all" depends="release, document" />
 				
 </project>
