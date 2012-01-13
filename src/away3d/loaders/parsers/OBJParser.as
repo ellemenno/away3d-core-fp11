@@ -164,11 +164,13 @@ package away3d.loaders.parsers
 			var creturn:String = String.fromCharCode(10);
 			var trunk:Array;
 			
-			if(!_startedParsing){
+			if(!_startedParsing)
 				_textData = getTextData();
-				var re:RegExp = new RegExp(String.fromCharCode(13),"g");
-				_textData = _textData.replace(re, "");
-
+			
+			if(_textData.indexOf(creturn) == -1)
+				creturn = String.fromCharCode(13);
+			
+			if(!_startedParsing){
 				_startedParsing = true;
 				_vertices = new Vector.<Vertex>();
 				_vertexNormals = new Vector.<Vertex>();
@@ -285,7 +287,7 @@ package away3d.loaders.parsers
 					translateMaterialGroup(materialGroups[m], geometry);
 				}
 				bmMaterial = new TextureMaterial( new BitmapTexture( defaultBitmapData ) );
-				mesh = new Mesh(bmMaterial, geometry);
+				mesh = new Mesh(geometry, bmMaterial);
 				meshid = _meshes.length;
 				mesh.name = "obj"+meshid;
 				_meshes[meshid] = mesh;
