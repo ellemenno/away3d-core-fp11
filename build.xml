@@ -68,7 +68,7 @@ Packages and documents the away3d library.
 	
 	
 	<target name="clean" description="removes the contents of target folder">
-		<delete failonerror="true" includeemptydirs="true">
+		<delete failonerror="false" includeemptydirs="true">
 			<fileset dir="${dir.target}" includes="${ant.project.name}*"/>
 		</delete>
 	</target>
@@ -102,5 +102,7 @@ Packages and documents the away3d library.
 	<target name="release" depends="compile" description="copies release build into release folder">
 		<copy file="${dir.target}/${ant.project.name}-${version}.swc" todir="${dir.release}" />
 	</target>
+
+	<target name="all" description="> ant -Dversion=4.yymmdd all" depends="release, document" />
 				
 </project>
