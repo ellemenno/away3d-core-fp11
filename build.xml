@@ -13,6 +13,7 @@ Packages and documents the away3d library.
 	
 	<property name="flex.lib" location="${FLEX_HOME}/lib" />
 	<property name="flex.frameworks" location="${FLEX_HOME}/frameworks" />
+	<property name="away3d.examples" location="${basedir}/../away3d-examples-fp11" />
 	
 	<target name="-usage"> <!-- not providing description to avoid showing up in -projecthelp -->
 		<echo message="${ant.project.name}" />
@@ -62,6 +63,7 @@ Packages and documents the away3d library.
 	
 	<property name="version" value="4.0.111227" />
 	<property name="dir.source" location="${basedir}/src"/>
+	<property name="dir.examples" location="${away3d.examples}/src"/>
 	<property name="dir.target" location="${basedir}/target"/>
 	<property name="dir.release" location="${basedir}/release"/>
 	<property name="dir.docs" location="${basedir}/docs"/>
@@ -88,14 +90,15 @@ Packages and documents the away3d library.
 	
 	
     <target name="document" description="builds asdocs into docs folder">
-
+		<echo message="dir.examples = ${dir.examples}"/>
 		<local name="destination"/><property name="destination" value="${dir.docs}"/>
-		<local name="source-path"/><property name="source-path" value="-source-path=${dir.source}"/>
     	<local name="doc-sources"/><property name="doc-sources" value="-doc-sources=${dir.source}"/>
     	<local name="main-title"/><property name="main-title" value="-main-title='${ant.project.name} v${version}'"/>
+		<local name="source-path"/><property name="source-path" value="-source-path=${dir.source}"/>
+    	<local name="examples-path"/><property name="examples-path" value="-examples-path=${dir.examples}"/>
 		<asdoc 
 			dir="${destination}" 
-			options="${doc-sources} ${source-path} ${main-title}"
+			options="${doc-sources} ${source-path} ${examples-path} ${main-title}"
 			/>
 	</target>
 	

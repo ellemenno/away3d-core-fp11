@@ -25,9 +25,16 @@ package away3d.primitives
 	use namespace arcane;
 
 	/**
-	 * A SkyBox class is used to render a sky in the scene. It's always considered static and 'at infinity', and as
-	 * such it's always centered at the camera's position and sized to exactly fit within the camera's frustum, ensuring
+	 * A SkyBox class is used to render a sky in the scene. 
+	 * 
+	 * <p>
+	 * It's always considered static and 'at infinity', and as
+	 * such it's always centered at the camera's position and sized to 
+	 * exactly fit within the camera's frustum, ensuring
 	 * the sky box is always as large as possible without being clipped.
+	 * </p>
+	 * 
+	 * @includeExample SkyBoxExample.as
 	 */
 	public class SkyBox extends Entity implements IRenderable
 	{
