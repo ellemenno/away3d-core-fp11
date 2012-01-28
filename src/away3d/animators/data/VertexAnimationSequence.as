@@ -34,7 +34,8 @@ package away3d.animators.data
 			_durations.push(duration);
 		}
 
-        /**
+		
+		/**
 		 * returns the sequence frames
 		 */
 		arcane function get frames() : Vector.<Geometry>
