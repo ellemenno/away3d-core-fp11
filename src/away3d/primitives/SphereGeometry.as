@@ -8,6 +8,8 @@
 
 	/**
 	 * A UV Sphere primitive mesh.
+	 * 
+	 * @includeExample SphereExample.as
 	 */
 	public class SphereGeometry extends PrimitiveBase
 	{
