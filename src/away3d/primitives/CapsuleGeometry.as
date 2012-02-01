@@ -6,6 +6,8 @@ package away3d.primitives
 
 	/**
 	 * A UV Capsule primitive mesh.
+	 * 
+	 * @includeExample CapsuleExample.as
 	 */
 	public class CapsuleGeometry extends PrimitiveBase
 	{

@@ -3,6 +3,8 @@ package away3d.primitives {
 
 	/**
 	 * A UV Cone primitive mesh.
+	 * 
+	 * @includeExample ConeExample.as
 	 */
 	public class ConeGeometry extends CylinderGeometry {
 		
