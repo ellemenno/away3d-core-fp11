@@ -1,4 +1,4 @@
-package away3d.raytracing.colliders
+package away3d.core.raytracing.colliders
 {
 
 	import away3d.core.base.IRenderable;
@@ -43,7 +43,7 @@ package away3d.raytracing.colliders
 			// if working on a clone, no need to resend data to pb
 			// TODO: next line avoids re-upload if its the same renderable, but not if its 2 renderables referring to the same geometry or source
 			// TODO: perhaps implement a geom id?
-			if( _lastRenderableUploaded && _lastRenderableUploaded == renderable ) return;
+			if( _lastRenderableUploaded && _lastRenderableUploaded === renderable ) return;
 			// send vertices to pb
 			var vertices:Vector.<Number> = renderable.vertexData.concat(); // TODO: need concat? if not could affect rendering by introducing null triangles, or uncontrolled index buffer growth
 			var vertexBufferDims:Point = evaluateArrayAsGrid( vertices );
@@ -61,20 +61,34 @@ package away3d.raytracing.colliders
 		}
 
 		private function executeKernel():void {
+
 			// run kernel.
 			var rayTriangleKernelJob:ShaderJob = new ShaderJob( _rayTriangleKernel, _kernelOutputBuffer, _indexBufferDims.x, _indexBufferDims.y );
 			rayTriangleKernelJob.start( true );
-			// evaluate kernel output and smallest intersecting t parameter
-			var len:int = _kernelOutputBuffer.length;
-			var smallestNonNegativeT:Number = Number.MAX_VALUE;
+
+			// find a proper collision from pb's output
+			var i:uint;
 			var t:Number;
 			var collisionTriangleIndex:int = -1;
-			for( var i:uint; i < len; i += 3 ) {
-				t = _kernelOutputBuffer[ i ];
-				if( t > 0 && t < smallestNonNegativeT ) {
-					smallestNonNegativeT = t;
-					collisionTriangleIndex = i;
-					if( _breakOnFirstTriangleHit ) break;
+			var len:uint = _kernelOutputBuffer.length;
+			var smallestNonNegativeT:Number = Number.MAX_VALUE;
+			if( _breakOnFirstTriangleHit ) {
+				for( i = 0; i < len; i += 3 ) {
+					t = _kernelOutputBuffer[ i ];
+					if( t > 0 && t < smallestNonNegativeT ) {
+						smallestNonNegativeT = t;
+						collisionTriangleIndex = i;
+						break;
+					}
+				}
+			}
+			else {
+				for( i = 0; i < len; i += 3 ) {
+					t = _kernelOutputBuffer[ i ];
+					if( t > 0 && t < smallestNonNegativeT ) {
+						smallestNonNegativeT = t;
+						collisionTriangleIndex = i;
+					}
 				}
 			}
 			_t = smallestNonNegativeT;
@@ -118,6 +132,7 @@ package away3d.raytracing.colliders
 			super.updateRay( position, direction );
 		}
 
+		// TODO: this is not necessarily the most efficient way to pass data to pb
 		static private function evaluateArrayAsGrid( array:Vector.<Number> ):Point {
 			var count:uint = array.length / 3;
 			var w:uint = Math.floor( Math.sqrt( count ) );
@@ -130,10 +145,6 @@ package away3d.raytracing.colliders
 				h++;
 			}
 			return new Point( w, h );
-		}
-
-		public function get breakOnFirstTriangleHit():Boolean {
-			return _breakOnFirstTriangleHit;
 		}
 
 		public function set breakOnFirstTriangleHit( value:Boolean ):void {
