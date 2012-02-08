@@ -1,24 +1,26 @@
 ﻿package away3d.primitives
 {
 	import flash.geom.Vector3D;
-
-	/**
-	* Class WireFrameGrid generates a grid of lines on a given plane<code>WireFrameGrid</code>
-	* @param	subDivision		[optional] uint . Default is 10;
-	* @param	gridSize				[optional] uint . Default is 100;
-	* @param	color					[optional] uint . Default is 0xFFFFFF;
-	* @param	thickness			[optional] Number . Default is 1;
-	* @param	plane					[optional] String . Default is PLANE_XZ;
-	* @param	worldPlanes		[optional] Boolean . Default is false.
-	* If true, class displays the 3 world planes, at 0,0,0. with subDivision, thickness and and gridSize. Overrides color and plane settings.
-	*/
 		
+	/**
+	 * A UV sphere primitive composed of line segments.
+	 * 
+	 * @includeExample WireframeSphereExample.as
+	 */
 	public class WireframeSphere extends WireframePrimitiveBase
 	{
 		private var _segmentsW : uint;
 		private var _segmentsH : uint;
 		private var _radius : Number;
 
+		/**
+		 * Generates line segments on the surface of a sphere following latitude and longitude lines.
+		 * @param radius The radius of the sphere.
+		 * @param segmentsW Defines the number of horizontal segments that make up the sphere. Defaults to 16.
+		 * @param segmentsH Defines the number of vertical segments that make up the sphere. Defaults to 12.
+		 * @param color The color to draw the line segments with.
+		 * @param thickness The thickness of the line segments.
+		 */
 		public function WireframeSphere(radius : Number = 50, segmentsW : uint = 16, segmentsH : uint = 12, color:uint = 0xFFFFFF, thickness:Number = 1) {
 			super(color, thickness);
 

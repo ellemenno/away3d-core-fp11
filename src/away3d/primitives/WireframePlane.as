@@ -2,6 +2,11 @@
 {
 	import flash.geom.Vector3D;
 
+	/**
+	 * A plane primitive composed of line segments.
+	 * 
+	 * @includeExample WireframePlaneExample.as
+	 */
 	public class WireframePlane extends WireframePrimitiveBase
 	{
 		public static const ORIENTATION_YZ:String = "yz";
@@ -14,6 +19,16 @@
 		private var _segmentsH : int;
 		private var _orientation : String;
 
+		/**
+		 * Generates line segments on the surface of a plane.
+		 * @param width The width of the plane.
+		 * @param height The height of the plane.
+		 * @param segmentsH The number of segments that make up the plane along the Y or Z-axis. Defaults to 1.
+		 * @param segmentsW The number of segments that make up the plane along the X-axis. Defaults to 1.
+		 * @param color The color to draw the line segments with.
+		 * @param thickness The thickness of the line segments.
+		 * @param orientation Defines the alignment of the plane. Must match one of the ocnstants defined on this class.
+		 */
 		public function WireframePlane(width : Number, height : Number, segmentsH : int = 10, segmentsW : int = 10, color:uint = 0xFFFFFF, thickness:Number = 1, orientation : String = "yz") {
 			super(color, thickness);
 

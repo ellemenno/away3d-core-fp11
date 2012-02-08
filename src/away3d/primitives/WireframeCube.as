@@ -3,22 +3,24 @@
 	import flash.geom.Vector3D;
 
 	/**
-	* Class WireFrameGrid generates a grid of lines on a given plane<code>WireFrameGrid</code>
-	* @param	subDivision		[optional] uint . Default is 10;
-	* @param	gridSize				[optional] uint . Default is 100;
-	* @param	color					[optional] uint . Default is 0xFFFFFF;
-	* @param	thickness			[optional] Number . Default is 1;
-	* @param	plane					[optional] String . Default is PLANE_XZ;
-	* @param	worldPlanes		[optional] Boolean . Default is false.
-	* If true, class displays the 3 world planes, at 0,0,0. with subDivision, thickness and and gridSize. Overrides color and plane settings.
-	*/
-		
+	 * A cube primitive composed of line segments.
+	 * 
+	 * @includeExample WireframeCubeExample.as
+	 */
 	public class WireframeCube extends WireframePrimitiveBase
 	{
 		private var _width : Number;
 		private var _height : Number;
 		private var _depth : Number;
 
+		/**
+		 * Generates line segments on the edges of a cube.
+		 * @param width The size of the cube along its X-axis.
+		 * @param height The size of the cube along its Y-axis.
+		 * @param depth The size of the cube along its Z-axis.
+		 * @param color The color to draw the line segments with.
+		 * @param thickness The thickness of the line segments.
+		 */
 		public function WireframeCube(width : Number, height : Number, depth : Number, color:uint = 0xFFFFFF, thickness:Number = 1) {
 			super(color, thickness);
 

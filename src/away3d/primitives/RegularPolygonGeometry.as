@@ -3,6 +3,8 @@ package away3d.primitives {
 
 	/**
 	 * A UV RegularPolygon primitive mesh.
+	 * 
+	 * @includeExample RegularPolygonExample.as
 	 */
 	public class RegularPolygonGeometry extends CylinderGeometry {
 
