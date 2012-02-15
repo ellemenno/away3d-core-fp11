@@ -218,33 +218,32 @@ package away3d.bounds
 		}
 
 		protected function updateAABBPoints():void {
-			var i:uint;
 			var maxX:Number = _max.x, maxY:Number = _max.y, maxZ:Number = _max.z;
 			var minX:Number = _min.x, minY:Number = _min.y, minZ:Number = _min.z;
-			_aabbPoints[i++] = minX;
-			_aabbPoints[i++] = minY;
-			_aabbPoints[i++] = minZ;
-			_aabbPoints[i++] = maxX;
-			_aabbPoints[i++] = minY;
-			_aabbPoints[i++] = minZ;
-			_aabbPoints[i++] = minX;
-			_aabbPoints[i++] = maxY;
-			_aabbPoints[i++] = minZ;
-			_aabbPoints[i++] = maxX;
-			_aabbPoints[i++] = maxY;
-			_aabbPoints[i++] = minZ;
-			_aabbPoints[i++] = minX;
-			_aabbPoints[i++] = minY;
-			_aabbPoints[i++] = maxZ;
-			_aabbPoints[i++] = maxX;
-			_aabbPoints[i++] = minY;
-			_aabbPoints[i++] = maxZ;
-			_aabbPoints[i++] = minX;
-			_aabbPoints[i++] = maxY;
-			_aabbPoints[i++] = maxZ;
-			_aabbPoints[i++] = maxX;
-			_aabbPoints[i++] = maxY;
-			_aabbPoints[i] = maxZ;
+			_aabbPoints[0] = minX;
+			_aabbPoints[1] = minY;
+			_aabbPoints[2] = minZ;
+			_aabbPoints[3] = maxX;
+			_aabbPoints[4] = minY;
+			_aabbPoints[5] = minZ;
+			_aabbPoints[6] = minX;
+			_aabbPoints[7] = maxY;
+			_aabbPoints[8] = minZ;
+			_aabbPoints[9] = maxX;
+			_aabbPoints[10] = maxY;
+			_aabbPoints[11] = minZ;
+			_aabbPoints[12] = minX;
+			_aabbPoints[13] = minY;
+			_aabbPoints[14] = maxZ;
+			_aabbPoints[15] = maxX;
+			_aabbPoints[16] = minY;
+			_aabbPoints[17] = maxZ;
+			_aabbPoints[18] = minX;
+			_aabbPoints[19] = maxY;
+			_aabbPoints[20] = maxZ;
+			_aabbPoints[21] = maxX;
+			_aabbPoints[22] = maxY;
+			_aabbPoints[23] = maxZ;
 			_aabbPointsDirty = false;
 		}
 

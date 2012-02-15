@@ -14,7 +14,7 @@ package away3d.extrusions{
 	import away3d.materials.MaterialBase;
 	import away3d.materials.TextureMaterial;
 	import away3d.textures.BitmapTexture;
-	import away3d.tools.MeshHelper;
+	import away3d.tools.helpers.MeshHelper;
 	
 	import flash.geom.Matrix3D;
 	import flash.geom.Vector3D;
@@ -562,7 +562,7 @@ package away3d.extrusions{
 				
 			} else {
 				var bu:Number = 0;
-				var bincu:Number = 1/countloop;
+				var bincu:Number = 1/(countloop-1);
 			}
 			
 			function getDouble(x:Number, y:Number, z:Number ):Vertex
@@ -589,7 +589,7 @@ package away3d.extrusions{
 				}
 			}
 			 
-			if(_coverSegment) var floored:uint = indexp;
+			var floored:uint = _coverSegment? indexp : 0;
 			
 			if(_materials && _materials.length>0){
 				

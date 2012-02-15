@@ -57,6 +57,13 @@ package away3d.core.base
 		function getVertexBuffer( stage3DProxy:Stage3DProxy ):VertexBuffer3D;
 
 		/**
+		 * Retrieves a custom buffer that can contain any per-vertex data
+		 * @param stage3DProxy
+		 * @return The VertexBuffer3D object containing the data?
+		 */
+		function getCustomBuffer(stage3DProxy : Stage3DProxy) : VertexBuffer3D;
+
+		/**
 		 * Retrieves the VertexBuffer3D object that contains texture coordinates.
 		 * @param context The Context3D for which we request the buffer
 		 * @return The VertexBuffer3D object that contains texture coordinates.
@@ -118,5 +125,11 @@ package away3d.core.base
 		function get UVData():Vector.<Number>;
 
 		function get uvTransform():Matrix;
+
+		function get vertexBufferOffset() : int;
+		function get normalBufferOffset() : int;
+		function get tangentBufferOffset() : int;
+		function get UVBufferOffset() : int;
+		function get secondaryUVBufferOffset() : int;
 	}
 }
