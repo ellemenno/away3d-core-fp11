@@ -1,22 +1,22 @@
-package away3d.core.raytracing.picking
+package away3d.core.raycast
 {
 
 	import away3d.core.data.RenderableListItem;
-	import away3d.core.raytracing.colliders.*;
+	import away3d.core.raycast.colliders.*;
 	import away3d.entities.Entity;
 
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
 	import flash.utils.Dictionary;
 
-	public class MouseRayCollider extends RayCollider
+	public class MouseRaycast extends ColliderBase
 	{
-		private var _triangleCollider:RayTriangleCollider;
+		private var _triangleCollider:TriangleCollider;
 		private var _nearestCollisionVO:MouseCollisionVO;
 
-		public function MouseRayCollider() {
+		public function MouseRaycast() {
 			super();
-			_triangleCollider = new RayTriangleCollider();
+			_triangleCollider = new TriangleCollider();
 		}
 
 		override public function evaluate( item:RenderableListItem ):Boolean {
@@ -128,15 +128,27 @@ package away3d.core.raytracing.picking
 			return _collisionExists = _nearestCollisionVO.finalCollisionT != Number.MAX_VALUE;
 		}
 
-		override public function get collisionPoint():Vector3D {
-			if( !_collisionExists ) return null;
+		override public function get collisionPoint():Vector3D
+		{
+			if( !_collisionExists )
+				return null;
+			
 			var point:Vector3D = new Vector3D();
 			point.x = _nearestCollisionVO.localRayPosition.x + _nearestCollisionVO.finalCollisionT * _nearestCollisionVO.localRayDirection.x;
 			point.y = _nearestCollisionVO.localRayPosition.y + _nearestCollisionVO.finalCollisionT * _nearestCollisionVO.localRayDirection.y;
 			point.z = _nearestCollisionVO.localRayPosition.z + _nearestCollisionVO.finalCollisionT * _nearestCollisionVO.localRayDirection.z;
 			return point;
 		}
-
+		
+		
+		public function get entity():Entity
+		{
+			if( !_collisionExists )
+				return null;
+			
+			return _nearestCollisionVO.entity;
+		}
+		
 		private function onSmallestT( a:MouseCollisionVO, b:MouseCollisionVO ):Number {
 			return a.boundsCollisionT < b.boundsCollisionT ? -1 : 1;
 		}
