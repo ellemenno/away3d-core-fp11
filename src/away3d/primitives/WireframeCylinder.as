@@ -2,18 +2,22 @@ package away3d.primitives
 {
 	import flash.geom.Vector3D;
 
+
 	/**
-	 * Generates a wireframd cylinder primitive.
+	 * A cylinder primitive composed of line segments.
+	 *
+	 * @includeExample WireframeCylinderExample.as
 	 */
 	public class WireframeCylinder extends WireframePrimitiveBase
 	{
-		private static const TWO_PI:Number = 2*Math.PI;
+		private static const TWO_PI:Number = 2 * Math.PI;
 
 		private var _topRadius:Number;
 		private var _bottomRadius:Number;
 		private var _height:Number;
 		private var _segmentsW:uint;
 		private var _segmentsH:uint;
+
 
 		/**
 		 * Creates a new WireframeCylinder instance
@@ -34,69 +38,6 @@ package away3d.primitives
 			_segmentsW = segmentsW;
 			_segmentsH = segmentsH;
 		}
-
-
-		override protected function buildGeometry():void
-		{
-
-			var i:uint, j:uint;
-			var radius:Number = _topRadius;
-			var revolutionAngle:Number;
-			var revolutionAngleDelta:Number = TWO_PI/_segmentsW;
-			var nextVertexIndex:int = 0;
-			var x:Number, y:Number, z:Number;
-			var lastLayer:Vector.<Vector.<Vector3D>> = new Vector.<Vector.<Vector3D>>(_segmentsH + 1, true);
-
-			for (j = 0; j <= _segmentsH; ++j)
-			{
-				lastLayer[j] = new Vector.<Vector3D>(_segmentsW + 1, true);
-
-				radius = _topRadius - ((j/_segmentsH)*(_topRadius - _bottomRadius));
-				z = -(_height/2) + (j/_segmentsH*_height);
-
-				var previousV:Vector3D = null;
-
-				for (i = 0; i <= _segmentsW; ++i)
-				{
-					// revolution vertex
-					revolutionAngle = i*revolutionAngleDelta;
-					x = radius*Math.cos(revolutionAngle);
-					y = radius*Math.sin(revolutionAngle);
-					var vertex:Vector3D;
-					if (previousV)
-					{
-						vertex = new Vector3D(x, -z, y);
-						updateOrAddSegment(nextVertexIndex++, vertex, previousV);
-						previousV = vertex;
-					}
-					else
-					{
-						previousV = new Vector3D(x, -z, y);
-					}
-
-					if (j > 0)
-						updateOrAddSegment(nextVertexIndex++, vertex, lastLayer[j - 1][i]);
-					lastLayer[j][i] = previousV;
-				}
-			}
-		}
-
-
-		/**
-		 * Top radius of the cylinder
-		 */
-		public function get topRadius():Number
-		{
-			return _topRadius;
-		}
-
-
-		public function set topRadius(value:Number):void
-		{
-			_topRadius = value;
-			invalidateGeometry();
-		}
-
 
 		/**
 		 * Bottom radius of the cylinder
@@ -129,6 +70,66 @@ package away3d.primitives
 				throw new Error('Height must be a value greater than zero.')
 			_height = value;
 			invalidateGeometry();
+		}
+
+
+		/**
+		 * Top radius of the cylinder
+		 */
+		public function get topRadius():Number
+		{
+			return _topRadius;
+		}
+
+
+		public function set topRadius(value:Number):void
+		{
+			_topRadius = value;
+			invalidateGeometry();
+		}
+
+
+		override protected function buildGeometry():void
+		{
+
+			var i:uint, j:uint;
+			var radius:Number = _topRadius;
+			var revolutionAngle:Number;
+			var revolutionAngleDelta:Number = TWO_PI / _segmentsW;
+			var nextVertexIndex:int = 0;
+			var x:Number, y:Number, z:Number;
+			var lastLayer:Vector.<Vector.<Vector3D>> = new Vector.<Vector.<Vector3D>>(_segmentsH + 1, true);
+
+			for (j = 0; j <= _segmentsH; ++j)
+			{
+				lastLayer[j] = new Vector.<Vector3D>(_segmentsW + 1, true);
+
+				radius = _topRadius - ((j / _segmentsH) * (_topRadius - _bottomRadius));
+				z = -(_height / 2) + (j / _segmentsH * _height);
+
+				var previousV:Vector3D = null;
+
+				for (i = 0; i <= _segmentsW; ++i)
+				{
+					// revolution vertex
+					revolutionAngle = i * revolutionAngleDelta;
+					x = radius * Math.cos(revolutionAngle);
+					y = radius * Math.sin(revolutionAngle);
+					var vertex:Vector3D;
+					if (previousV)
+					{
+						vertex = new Vector3D(x, -z, y);
+						updateOrAddSegment(nextVertexIndex++, vertex, previousV);
+						previousV = vertex;
+					}
+					else
+						previousV = new Vector3D(x, -z, y);
+
+					if (j > 0)
+						updateOrAddSegment(nextVertexIndex++, vertex, lastLayer[j - 1][i]);
+					lastLayer[j][i] = previousV;
+				}
+			}
 		}
 	}
 }
