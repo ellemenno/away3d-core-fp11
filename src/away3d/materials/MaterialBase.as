@@ -1,6 +1,7 @@
 package away3d.materials
 {
-	import away3d.animators.data.AnimationBase;
+	import away3d.animators.IAnimationSet;
+	import away3d.animators.IAnimator;
 	import away3d.arcane;
 	import away3d.cameras.Camera3D;
 	import away3d.core.base.IMaterialOwner;
@@ -18,6 +19,7 @@ package away3d.materials
 	import flash.display.BlendMode;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DBlendFactor;
+	import flash.display3D.Context3DCompareMode;
 	import flash.events.Event;
 
 	use namespace arcane;
@@ -30,6 +32,7 @@ package away3d.materials
 	 */
 	public class MaterialBase extends NamedAssetBase implements IAsset
 	{
+		private static var MATERIAL_ID_COUNT : uint = 0;
 		/**
 		 * An object to contain any extra data
 		 */
@@ -40,13 +43,13 @@ package away3d.materials
 		arcane var _classification : String;
 
 		// this value is usually derived from other settings
-		arcane var _uniqueId : int;
+		arcane var _uniqueId : uint;
 
 		arcane var _renderOrderId : int;
 		arcane var _name : String = "material";
 
 		private var _bothSides : Boolean;
-		private var _animation : AnimationBase;
+		private var _animationSet : IAnimationSet;
 
 		private var _owners : Vector.<IMaterialOwner>;
 
@@ -63,6 +66,7 @@ package away3d.materials
 		protected var _mipmap : Boolean = true;
 		protected var _smooth : Boolean = true;
 		protected var _repeat : Boolean;
+		protected var _depthCompareMode:String = Context3DCompareMode.LESS;
 
 		protected var _depthPass : DepthMapPass;
 		protected var _distancePass : DistanceMapPass;
@@ -83,7 +87,7 @@ package away3d.materials
 			// Default to considering pre-multiplied textures while blending
 			alphaPremultiplied = true;
 
-//			invalidatePasses(null);
+			_uniqueId = MATERIAL_ID_COUNT++;
 		}
 
 		public function get assetType() : String
@@ -148,6 +152,17 @@ package away3d.materials
 		{
 			_smooth = value;
 			for (var i : int = 0; i < _numPasses; ++i) _passes[i].smooth = value;
+		}
+		
+		public function get depthCompareMode() : String
+		{
+			return _depthCompareMode;
+		}
+		
+		public function set depthCompareMode(value : String) : void
+		{
+			_depthCompareMode = value;
+			for (var i : int = 0; i < _numPasses; ++i) _passes[i].depthCompareMode = value;
 		}
 
 		/**
@@ -249,7 +264,7 @@ package away3d.materials
 		/**
 		 * The unique id assigned to the material by the MaterialLibrary.
 		 */
-		public function get uniqueId() : int
+		public function get uniqueId() : uint
 		{
 			return _uniqueId;
 		}
@@ -301,6 +316,11 @@ package away3d.materials
 			else {
 				_depthPass.render(renderable, stage3DProxy, camera, _lightPicker);
 			}
+		}
+
+		arcane function passRendersToTexture(index : uint) : Boolean
+		{
+			return _passes[index].renderToTexture;
 		}
 
 		/**
@@ -359,19 +379,21 @@ package away3d.materials
 		 */
 		arcane function addOwner(owner : IMaterialOwner) : void
 		{
-			if (_animation && !owner.animation.equals(_animation)) {
-				throw new Error("A Material instance cannot be shared across renderables with different animation instances");
-			}
-			else {
-				_animation = owner.animation;
-				for (var i : int = 0; i < _numPasses; ++i)
-					_passes[i].animation = _animation;
-				_depthPass.animation = _animation;
-				_distancePass.animation = _animation;
-				invalidatePasses(null);
-			}
-
 			_owners.push(owner);
+			
+			if (owner.animator) {
+				if (_animationSet && owner.animator.animationSet != _animationSet) {
+					throw new Error("A Material instance cannot be shared across renderables with different animator libraries");
+				}
+				else {
+					_animationSet = owner.animator.animationSet;
+					for (var i : int = 0; i < _numPasses; ++i)
+						_passes[i].animationSet = _animationSet;
+					_depthPass.animationSet = _animationSet;
+					_distancePass.animationSet = _animationSet;
+					invalidatePasses(null);
+				}
+			}
 		}
 
 		/**
@@ -382,17 +404,14 @@ package away3d.materials
 		arcane function removeOwner(owner : IMaterialOwner) : void
 		{
 			_owners.splice(_owners.indexOf(owner), 1);
-			if (_owners.length == 0) _animation = null;
-		}
-
-		/**
-		 * Assignes a unique id to the material.
-		 * @param id
-		 * @private
-		 */
-		arcane function setUniqueId(id : int) : void
-		{
-			_uniqueId = id;
+			if (_owners.length == 0) {
+				_animationSet = null;
+				for (var i : int = 0; i < _numPasses; ++i)
+					_passes[i].animationSet = _animationSet;
+				_depthPass.animationSet = _animationSet;
+				_distancePass.animationSet = _animationSet;
+				invalidatePasses(null);
+			}
 		}
 
 		/**
@@ -429,20 +448,28 @@ package away3d.materials
 		 */
 		arcane function invalidatePasses(triggerPass : MaterialPassBase) : void
 		{
+			var owner : IMaterialOwner;
+			
 			_depthPass.invalidateShaderProgram();
 			_distancePass.invalidateShaderProgram();
-
-			if (_animation) {
-				_animation.resetGPUCompatibility();
-				_animation.testGPUCompatibility(_depthPass);
-				_animation.testGPUCompatibility(_distancePass);
+			
+			if (_animationSet) {
+				_animationSet.resetGPUCompatibility();
+				for each (owner in _owners) {
+					if (owner.animator) {
+						owner.animator.testGPUCompatibility(_depthPass);
+						owner.animator.testGPUCompatibility(_distancePass);
+					}
+				}
 			}
 
 			for (var i : int = 0; i < _numPasses; ++i) {
 				if (_passes[i] != triggerPass) _passes[i].invalidateShaderProgram(false);
 				// test if animation will be able to run on gpu BEFORE compiling materials
-				if (_animation)
-					_animation.testGPUCompatibility(_passes[i]);
+				if (_animationSet)
+					for each (owner in _owners)
+						if (owner.animator)
+							owner.animator.testGPUCompatibility(_passes[i]);
 			}
 		}
 
@@ -466,10 +493,11 @@ package away3d.materials
 		protected function addPass(pass : MaterialPassBase) : void
 		{
 			_passes[_numPasses++] = pass;
-			pass.animation = _animation;
+			pass.animationSet = _animationSet;
 			pass.mipmap = _mipmap;
 			pass.smooth = _smooth;
 			pass.repeat = _repeat;
+			pass.depthCompareMode = _depthCompareMode;
 			pass.numPointLights = _lightPicker? _lightPicker.numPointLights : 0;
 			pass.numDirectionalLights = _lightPicker? _lightPicker.numDirectionalLights : 0;
 			pass.numLightProbes = _lightPicker? _lightPicker.numLightProbes : 0;

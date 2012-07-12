@@ -107,9 +107,8 @@ package away3d.loaders.parsers
 		override arcane function resolveDependency(resourceDependency:ResourceDependency):void
 		{
 			if (resourceDependency.id == 'mtl') {
-				
-				var ba:ByteArray = resourceDependency.data;
-				parseMtl(ba.readUTFBytes(ba.bytesAvailable));
+				var str : String = ParserUtil.toString(resourceDependency.data);
+				parseMtl(str);
 				
 			} else {
 				
@@ -161,8 +160,13 @@ package away3d.loaders.parsers
 			var creturn:String = String.fromCharCode(10);
 			var trunk:Array;
 			
-			if(!_startedParsing)
+			if(!_startedParsing) {
 				_textData = getTextData();
+				
+				// Merge linebreaks that are immediately preceeded by
+				// the "escape" backward slash into single lines.
+				_textData = _textData.replace(/\\[\r\n]+\s*/gm, ' ');
+			}
 			
 			if(_textData.indexOf(creturn) == -1)
 				creturn = String.fromCharCode(13);
@@ -194,6 +198,12 @@ package away3d.loaders.parsers
 				trunk = line.replace("  "," ").split(" ");
 				_oldIndex = _charIndex+1;
 				parseLine(trunk);
+				
+				// If whatever was parsed on this line resulted in the
+				// parsing being paused to retrieve dependencies, break
+				// here and do not continue parsing until un-paused.
+				if (parsingPaused)
+					return MORE_TO_PARSE;
 			}
 			
 			if(_charIndex >= _stringLength){
@@ -201,10 +211,10 @@ package away3d.loaders.parsers
 				if(_mtlLib  && !_mtlLibLoaded)
 					return MORE_TO_PARSE;
 				 
-					translate();
-					applyMaterials();
-					
-					return PARSING_DONE;
+				translate();
+				applyMaterials();
+				
+				return PARSING_DONE;
 			}
 			
 			return MORE_TO_PARSE;
@@ -261,7 +271,6 @@ package away3d.loaders.parsers
 				var numMaterialGroups:uint;
 				var geometry:Geometry;
 				var mesh:Mesh;
-				var meshid:uint = 0;
 				
 				var m:uint;
 				var sm:uint;
@@ -291,9 +300,9 @@ package away3d.loaders.parsers
 						// this is a group so the sub groups contain the actual mesh object names ('g' tag in OBJ file)
 						mesh.name = groups[g].name;
 					} else {
-						// no name and thats unfortunate, lets make one up
-						mesh.name = "obj" + meshid;
-						meshid++;
+						// No name stored. Use empty string which will force it
+						// to be overridden by finalizeAsset() to type default.
+						mesh.name = "";
 					}
 						
 					_meshes.push(mesh);
@@ -622,6 +631,7 @@ package away3d.loaders.parsers
 					var cm:ColorMaterial = new ColorMaterial(diffuseColor);
 					cm.alpha = alpha;
 					cm.ambientColor = ambientColor;
+					cm.repeat = true;
 					
 					if(useSpecular){
 						cm.specularColor = specularColor;
@@ -714,17 +724,23 @@ package away3d.loaders.parsers
 						mat.texture = lm.texture;
 						mat.ambientColor = lm.ambientColor;
 						mat.alpha = lm.alpha;
+						mat.repeat = true;
 						
 						if(lm.specularMethod){
+							// By setting the specularMethod property to null before assigning
+							// the actual method instance, we avoid having the properties of
+							// the new method being overridden with the settings from the old
+							// one, which is default behavior of the setter.
+							mat.specularMethod = null;
 							mat.specularMethod = lm.specularMethod;
 						} else if(_materialSpecularData){
 							for(j = 0;j<_materialSpecularData.length;++j){
 								specularData = _materialSpecularData[j];
 								if(specularData.materialID == lm.materialID){
+									mat.specularMethod = null; // Prevent property overwrite (see above)
 									mat.specularMethod = specularData.basicSpecularMethod;
 									mat.ambientColor = specularData.ambientColor;
 									mat.alpha = specularData.alpha;
-									_materialSpecularData.splice(j,1);
 									break;
 								}
 							}
@@ -737,7 +753,8 @@ package away3d.loaders.parsers
 				}
 			}
 			
-			finalizeAsset(lm.cm || mat);
+			if (lm.cm || mat)
+				finalizeAsset(lm.cm || mat);
 		}
 		
 		private function applyMaterials():void

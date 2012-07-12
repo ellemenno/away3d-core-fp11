@@ -23,6 +23,96 @@ package away3d.loaders.parsers
 
 	use namespace arcane;
 	
+	
+	/**
+	 * Dispatched when the parsing finishes.
+	 * 
+	 * @eventType away3d.events.ParserEvent
+	 */
+	[Event(name="parseComplete", type="away3d.events.ParserEvent")]
+	
+	/**
+	 * Dispatched when parser pauses to wait for dependencies, used internally to trigger
+	 * loading of dependencies which are then returned to the parser through it's interface
+	 * in the arcane namespace.
+	 * 
+	 * @eventType away3d.events.ParserEvent
+	 */
+	[Event(name="readyForDependencies", type="away3d.events.ParserEvent")]
+	
+	/**
+	 * Dispatched if an error was caught during parsing.
+	 * 
+	 * @eventType away3d.events.ParserEvent
+	 */
+	[Event(name="parseError", type="away3d.events.ParserEvent")]
+	
+	/**
+	 * Dispatched when any asset finishes parsing. Also see specific events for each
+	 * individual asset type (meshes, materials et c.)
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="assetComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a geometry asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="geometryComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a skeleton asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="skeletonComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a skeleton pose asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="skeletonPoseComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a container asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="containerComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a animation asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="animationComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a texture asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="textureComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a material asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="materialComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when a animator asset has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="animatorComplete", type="away3d.events.AssetEvent")]
+	
+	
+	
 	/**
 	 * <code>ParserBase</code> provides an abstract base class for objects that convert blocks of data to data structures
 	 * supported by Away3D.
@@ -188,7 +278,6 @@ package away3d.loaders.parsers
 		
 		arcane function resumeParsingAfterDependencies() : void
 		{
-			_dependencies.length = 0;
 			_parsingPaused = false;
 			_timer.start();
 		}
@@ -204,17 +293,25 @@ package away3d.loaders.parsers
 				asset.name = name;
 			
 			switch (asset.assetType) {
-				case AssetType.ANIMATION:
-					type_name = 'animation';
-					type_event = AssetEvent.ANIMATION_COMPLETE;
+				case AssetType.ANIMATION_SET:
+					type_name = 'animationSet';
+					type_event = AssetEvent.ANIMATION_SET_COMPLETE;
 					break;
-				case AssetType.ANIMATOR:
-					type_name = 'animator';
-					type_event = AssetEvent.ANIMATOR_COMPLETE;
+				case AssetType.ANIMATION_STATE:
+					type_name = 'animationState';
+					type_event = AssetEvent.ANIMATION_STATE_COMPLETE;
+					break;
+				case AssetType.ANIMATION_NODE:
+					type_name = 'animationNode';
+					type_event = AssetEvent.ANIMATION_NODE_COMPLETE;
+					break;
+				case AssetType.STATE_TRANSITION:
+					type_name = 'stateTransition';
+					type_event = AssetEvent.STATE_TRANSITION_COMPLETE;
 					break;
 				case AssetType.TEXTURE:
 					type_name = 'texture';
-					type_event = AssetEvent.BITMAP_COMPLETE;
+					type_event = AssetEvent.TEXTURE_COMPLETE;
 					break;
 				case AssetType.CONTAINER:
 					type_name = 'container';
@@ -278,9 +375,9 @@ package away3d.loaders.parsers
 		}
 		
 		
-		protected function addDependency(id : String, req : URLRequest, retrieveAsRawData : Boolean = false, data : * = null) : void
+		protected function addDependency(id : String, req : URLRequest, retrieveAsRawData : Boolean = false, data : * = null, suppressErrorEvents : Boolean = false) : void
 		{
-			_dependencies.push(new ResourceDependency(id, req, data, this, retrieveAsRawData));
+			_dependencies.push(new ResourceDependency(id, req, data, this, retrieveAsRawData, suppressErrorEvents));
 		}
 		
 		
@@ -425,7 +522,7 @@ package away3d.loaders.parsers
 				for (i=0; i<len; i+=3) {
 					var j : uint;
 					
-					if (outIndex >= LIMIT) {
+					if (outIndex*3 >= LIMIT) {
 						subs.push(constructSubGeometry(splitVerts, splitIndices, splitUvs, splitNormals, splitTangents, splitWeights, splitJointIndices));
 						splitVerts = new Vector.<Number>();
 						splitIndices = new Vector.<uint>();
@@ -472,9 +569,14 @@ package away3d.loaders.parsers
 							splitVerts[s2] = verts[o2];
 							
 							if (uvs) {
-								splitUvs[s0] = uvs[o0];
-								splitUvs[s1] = uvs[o1];
-								splitUvs[s2] = uvs[o2];
+								var su : uint, ou : uint, sv : uint, ov : uint;
+								su = splitIndex*2+0;
+								sv = splitIndex*2+1;
+								ou = originalIndex*2+0;
+								ov = originalIndex*2+1;
+								
+								splitUvs[su] = uvs[ou];
+								splitUvs[sv] = uvs[ov];
 							}
 							
 							if (normals) {
