@@ -162,7 +162,6 @@ package away3d.materials
 		public function set depthCompareMode(value : String) : void
 		{
 			_depthCompareMode = value;
-			for (var i : int = 0; i < _numPasses; ++i) _passes[i].depthCompareMode = value;
 		}
 
 		/**
@@ -290,14 +289,14 @@ package away3d.materials
 			return _numPasses;
 		}
 
-		arcane function activateForDepth(stage3DProxy : Stage3DProxy, camera : Camera3D, distanceBased : Boolean = false) : void
+		arcane function activateForDepth(stage3DProxy : Stage3DProxy, camera : Camera3D, distanceBased : Boolean = false, textureRatioX : Number = 1, textureRatioY : Number = 1) : void
 		{
 			_distanceBasedDepthRender = distanceBased;
 
 			if (distanceBased)
-				_distancePass.activate(stage3DProxy, camera, 1, 1);
+				_distancePass.activate(stage3DProxy, camera, textureRatioX, textureRatioY);
 			else
-				_depthPass.activate(stage3DProxy, camera, 1, 1);
+				_depthPass.activate(stage3DProxy, camera, textureRatioX, textureRatioY);
 		}
 
 		arcane function deactivateForDepth(stage3DProxy : Stage3DProxy) : void
@@ -333,8 +332,13 @@ package away3d.materials
 		arcane function activatePass(index : uint, stage3DProxy : Stage3DProxy, camera : Camera3D, textureRatioX : Number, textureRatioY : Number) : void
 		{
 			if (index == _numPasses-1) {
-				if (requiresBlending)
-					stage3DProxy._context3D.setBlendFactors(_srcBlend, _destBlend);
+				var context : Context3D = stage3DProxy._context3D;
+				if (requiresBlending) {
+					context.setBlendFactors(_srcBlend, _destBlend);
+					context.setDepthTest(false, _depthCompareMode);
+				}
+				else
+					context.setDepthTest(true, _depthCompareMode);
 			}
 
 			_passes[index].activate(stage3DProxy, camera, textureRatioX, textureRatioY);
@@ -497,7 +501,6 @@ package away3d.materials
 			pass.mipmap = _mipmap;
 			pass.smooth = _smooth;
 			pass.repeat = _repeat;
-			pass.depthCompareMode = _depthCompareMode;
 			pass.numPointLights = _lightPicker? _lightPicker.numPointLights : 0;
 			pass.numDirectionalLights = _lightPicker? _lightPicker.numDirectionalLights : 0;
 			pass.numLightProbes = _lightPicker? _lightPicker.numLightProbes : 0;

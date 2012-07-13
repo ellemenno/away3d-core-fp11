@@ -31,11 +31,16 @@ package away3d.animators.nodes
 			return _nextGeometry;
 		}
 		
+		public function get frames():Vector.<Geometry>
+		{
+			return _frames;
+		}
+		
 		public function VertexClipNode()
 		{
 		}
 		
-		public function addFrame(geometry : Geometry, duration : Number, translation:Vector3D = null) : void
+		public function addFrame(geometry : Geometry, duration : uint, translation:Vector3D = null) : void
 		{
 			_frames.push(geometry);
 			_durations.push(duration);
@@ -46,7 +51,7 @@ package away3d.animators.nodes
 			_stitchDirty = true;
 		}
 		
-		override protected function updateTime(time:Number):void
+		override protected function updateTime(time:int):void
 		{
 			super.updateTime(time);
 			

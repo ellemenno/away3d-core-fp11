@@ -1,24 +1,26 @@
 package away3d.animators.nodes
 {
-	import away3d.errors.AbstractMethodError;
-	import flash.geom.Vector3D;
-	import away3d.library.assets.AssetType;
-	import away3d.library.assets.NamedAssetBase;
-	import away3d.library.assets.IAsset;
-
+	import away3d.library.assets.*;
+	import away3d.errors.*;
+	
+	import flash.geom.*;
+	
 	/**
-	 * @author robbateman
+	 * Provides an abstract base class for nodes in an animation blend tree.
 	 */
 	public class AnimationNodeBase extends NamedAssetBase implements IAsset
 	{
-		private var _startTime:Number = 0;
+		private var _startTime:int = 0;
 		
-		protected var _time:Number;
+		protected var _time:int;
 		protected var _totalDuration : uint = 0;
 		protected var _rootDelta : Vector3D = new Vector3D();
 		protected var _rootDeltaDirty : Boolean;
 		protected var _looping:Boolean = true;
 		
+		/**
+		 * Determines whether the contents of the animation node have looping characteristics enabled.
+		 */
 		public function get looping():Boolean
 		{	
 			return _looping;
@@ -32,7 +34,10 @@ package away3d.animators.nodes
 			_looping = value;
 			updateLooping();
 		}
-				
+		
+		/**
+		 * Returns a 3d vector representing the translation delta of the animating entity for the current frame of animation
+		 */		
 		public function get rootDelta() : Vector3D
 		{
 			if (_rootDeltaDirty)
@@ -41,11 +46,19 @@ package away3d.animators.nodes
 			return _rootDelta;
 		}
 		
+		/**
+		 * Creates a new <code>AnimationNodeBase</code> object.
+		 */
 		public function AnimationNodeBase()
 		{
 		}
 		
-		public function reset(time:Number):void
+		/**
+		 * Resets the configuration of the node to its default state.
+		 * 
+		 * @param time The absolute time (in milliseconds) of the animator's playhead.
+		 */
+		public function reset(time:int):void
 		{
 			if (!_looping)
 				_startTime = time;
@@ -55,7 +68,14 @@ package away3d.animators.nodes
 			updateRootDelta();
 		}
 		
-		public function update(time:Number):void
+		/**
+		 * Updates the configuration of the node to its current state.
+		 * 
+		 * @param time The absolute time (in milliseconds) of the animator's play head.
+		 * 
+		 * @see away3d.animators.AnimatorBase#update()
+		 */		
+		public function update(time:int):void
 		{
 			if (!_looping && time > _startTime + _totalDuration)
 				time = _startTime + _totalDuration;
@@ -66,10 +86,16 @@ package away3d.animators.nodes
 			updateTime(time - _startTime);
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function dispose():void
 		{
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function get assetType() : String
 		{
 			return AssetType.ANIMATION_NODE;
@@ -84,15 +110,18 @@ package away3d.animators.nodes
 		}
 		
 		/**
-		 * Updates the node's root delta position
+		 * Updates the node's internal playhead position.
 		 */
-		protected function updateTime(time:Number) : void
+		protected function updateTime(time:int) : void
 		{
 			_time = time;
 			
 			_rootDeltaDirty = true;
 		}
 		
+		/**
+		 * Updates the node's looping state
+		 */
 		protected function updateLooping():void
 		{
 			updateTime(_time);

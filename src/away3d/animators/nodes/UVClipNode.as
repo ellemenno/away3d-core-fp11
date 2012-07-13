@@ -28,11 +28,16 @@ package away3d.animators.nodes
 			return _nextUVFrame;
 		}
 		
+		public function get frames():Vector.<UVAnimationFrame>
+		{
+			return _frames;
+		}
+		
 		public function UVClipNode()
 		{
 		}
 		
-		public function addFrame(uvFrame : UVAnimationFrame, duration : Number) : void
+		public function addFrame(uvFrame : UVAnimationFrame, duration : uint) : void
 		{
 			_frames.push(uvFrame);
 			_durations.push(duration);
@@ -42,7 +47,7 @@ package away3d.animators.nodes
 			_stitchDirty = true;
 		}
 		
-		override protected function updateTime(time:Number):void
+		override protected function updateTime(time:int):void
 		{
 			super.updateTime(time);
 			

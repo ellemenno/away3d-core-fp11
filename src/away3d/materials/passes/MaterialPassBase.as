@@ -48,7 +48,7 @@ package away3d.materials.passes
 		protected var _repeat : Boolean = false;
 		protected var _mipmap : Boolean = true;
 		protected var _depthCompareMode:String = Context3DCompareMode.LESS;
-		
+
 		private var _bothSides : Boolean;
 
 		protected var _numPointLights : uint;
@@ -155,7 +155,7 @@ package away3d.materials.passes
 		{
 			return _depthCompareMode;
 		}
-		
+
 		public function set depthCompareMode(value : String) : void
 		{
 			_depthCompareMode = value;

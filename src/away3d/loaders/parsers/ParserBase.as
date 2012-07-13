@@ -9,7 +9,6 @@ package away3d.loaders.parsers
 	import away3d.library.assets.AssetType;
 	import away3d.library.assets.IAsset;
 	import away3d.loaders.misc.ResourceDependency;
-	import away3d.loaders.parsers.data.DefaultBitmapData;
 	import away3d.loaders.parsers.utils.ParserUtil;
 	import away3d.tools.utils.TextureUtils;
 	
@@ -82,13 +81,34 @@ package away3d.loaders.parsers
 	 * @eventType away3d.events.AssetEvent
 	 */
 	[Event(name="containerComplete", type="away3d.events.AssetEvent")]
-	
+		
 	/**
-	 * Dispatched when a animation asset has been constructed from a resource.
+	 * Dispatched when an animation set has been constructed from a group of animation state resources.
 	 * 
 	 * @eventType away3d.events.AssetEvent
 	 */
-	[Event(name="animationComplete", type="away3d.events.AssetEvent")]
+	[Event(name="animationSetComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when an animation state has been constructed from a group of animation node resources.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="animationStateComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when an animation node has been constructed from a resource.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="animationNodeComplete", type="away3d.events.AssetEvent")]
+	
+	/**
+	 * Dispatched when an animation state transition has been constructed from a group of animation node resources.
+	 * 
+	 * @eventType away3d.events.AssetEvent
+	 */
+	[Event(name="stateTransitionComplete", type="away3d.events.AssetEvent")]
 	
 	/**
 	 * Dispatched when a texture asset has been constructed from a resource.
@@ -178,14 +198,6 @@ package away3d.loaders.parsers
 		{
 			_dataFormat = format;
 			_dependencies = new Vector.<ResourceDependency>();
-		}
-		
-		/**
-		 * The url or id of the data or file to be parsed.
-		 */
-		public function get defaultBitmapData() : BitmapData
-		{
-			return DefaultBitmapData.bitmapData;
 		}
 		
 		/**

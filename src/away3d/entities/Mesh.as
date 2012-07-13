@@ -1,7 +1,7 @@
 ﻿package away3d.entities
 {
+	import away3d.materials.utils.DefaultMaterialManager;
 	import away3d.animators.IAnimator;
-	import away3d.animators.data.*;
 	import away3d.arcane;
 	import away3d.containers.*;
 	import away3d.core.base.*;
@@ -30,13 +30,13 @@
 		 * @param material The material with which to render the Mesh.
 		 * @param geometry The geometry used by the mesh that provides it with its shape.
 		 */
-		public function Mesh(geometry : Geometry = null, material : MaterialBase = null)
+		public function Mesh(geometry : Geometry, material : MaterialBase = null)
 		{
 			super();
 			_subMeshes = new Vector.<SubMesh>();
 
-			this.geometry = geometry || new Geometry();
-			this.material = material;
+			this.geometry = geometry;
+			this.material = material || DefaultMaterialManager.getDefaultMaterial(this);
 		}
 		
 		public function bakeTransformations():void
@@ -212,6 +212,7 @@
 			clone.partition = partition;
 			clone.bounds = _bounds.clone();
 			clone.name = name;
+			clone.castsShadows = castsShadows;
 
 			var len : int = _subMeshes.length;
 			for (var i : int = 0; i < len; ++i) {
@@ -300,21 +301,21 @@
 
 		override arcane function collidesBefore(shortestCollisionDistance : Number, findClosest : Boolean) : Boolean
 		{
-			_pickingCollider.setLocalRay(_pickingCollision.localRayPosition, _pickingCollision.localRayDirection);
-			_pickingCollision.renderable = null;
+			_pickingCollider.setLocalRay(_pickingCollisionVO.localRayPosition, _pickingCollisionVO.localRayDirection);
+			_pickingCollisionVO.renderable = null;
 			var len : int = _subMeshes.length;
 			for (var i : int = 0; i < len; ++i) {
 				var subMesh : SubMesh = _subMeshes[i];
 
-				if (_pickingCollider.testSubMeshCollision(subMesh, _pickingCollision, shortestCollisionDistance)) {
-					shortestCollisionDistance = _pickingCollision.rayEntryDistance;
-					_pickingCollision.renderable = subMesh;
-					if (findClosest)
+				if (_pickingCollider.testSubMeshCollision(subMesh, _pickingCollisionVO, shortestCollisionDistance)) {
+					shortestCollisionDistance = _pickingCollisionVO.rayEntryDistance;
+					_pickingCollisionVO.renderable = subMesh;
+					if (!findClosest)
 						return true;
 				}
 			}
 
-			return pickingCollisionVO.renderable != null;
+			return _pickingCollisionVO.renderable != null;
 		}
 	}
 }
