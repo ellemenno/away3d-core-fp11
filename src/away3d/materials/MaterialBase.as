@@ -53,7 +53,7 @@ package away3d.materials
 
 		private var _owners : Vector.<IMaterialOwner>;
 
-		private var _premultiplied : Boolean;
+		private var _alphaPremultiplied : Boolean;
 		private var _requiresBlending : Boolean;
 
 		private var _blendMode : String = BlendMode.NORMAL;
@@ -243,12 +243,14 @@ package away3d.materials
 		*/
 		public function get alphaPremultiplied() : Boolean
 		{
-			return _premultiplied;
+			return _alphaPremultiplied;
 		}
 		public function set alphaPremultiplied(value : Boolean) : void
 		{
-			_premultiplied = value;
-			updateBlendFactors();
+			_alphaPremultiplied = value;
+
+			for (var i : int = 0; i < _numPasses; ++i)
+				_passes[i].alphaPremultiplied = value;
 		}
 		
 
@@ -310,9 +312,13 @@ package away3d.materials
 		arcane function renderDepth(renderable : IRenderable, stage3DProxy : Stage3DProxy, camera : Camera3D) : void
 		{
 			if (_distanceBasedDepthRender) {
+				if (renderable.animator)
+					_distancePass.updateAnimationState(renderable, stage3DProxy);
 				_distancePass.render(renderable, stage3DProxy, camera, _lightPicker);
 			}
 			else {
+				if (renderable.animator)
+					_depthPass.updateAnimationState(renderable, stage3DProxy);
 				_depthPass.render(renderable, stage3DProxy, camera, _lightPicker);
 			}
 		}
@@ -365,7 +371,12 @@ package away3d.materials
 			if (_lightPicker)
 				_lightPicker.collectLights(renderable, entityCollector);
 
-			_passes[index].render(renderable, stage3DProxy, entityCollector.camera, _lightPicker);
+			var pass : MaterialPassBase = _passes[index];
+
+			if (renderable.animator)
+				pass.updateAnimationState(renderable, stage3DProxy);
+
+			pass.render(renderable, stage3DProxy, entityCollector.camera, _lightPicker);
 		}
 
 
@@ -498,6 +509,7 @@ package away3d.materials
 		{
 			_passes[_numPasses++] = pass;
 			pass.animationSet = _animationSet;
+			pass.alphaPremultiplied = _alphaPremultiplied;
 			pass.mipmap = _mipmap;
 			pass.smooth = _smooth;
 			pass.repeat = _repeat;
@@ -514,7 +526,7 @@ package away3d.materials
 			switch (_blendMode) {
 				case BlendMode.NORMAL:
 				case BlendMode.LAYER:
-					_srcBlend = _premultiplied? Context3DBlendFactor.ONE : Context3DBlendFactor.SOURCE_ALPHA;
+					_srcBlend = Context3DBlendFactor.SOURCE_ALPHA;
 					_destBlend = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
 					_requiresBlending = false; // only requires blending if a subtype needs it
 					break;
@@ -524,7 +536,7 @@ package away3d.materials
 					_requiresBlending = true;
 					break;
 				case BlendMode.ADD:
-					_srcBlend = _premultiplied? Context3DBlendFactor.ONE : Context3DBlendFactor.SOURCE_ALPHA;
+					_srcBlend = Context3DBlendFactor.SOURCE_ALPHA;
 					_destBlend = Context3DBlendFactor.ONE;
 					_requiresBlending = true;
 					break;

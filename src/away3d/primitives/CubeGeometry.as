@@ -21,13 +21,12 @@ package away3d.primitives
 
 		/**
 		 * Creates a new Cube object.
-		 * @param material The material with which to render the object.
 		 * @param width The size of the cube along its X-axis.
 		 * @param height The size of the cube along its Y-axis.
 		 * @param depth The size of the cube along its Z-axis.
-		 * @param segmentsW The number of segments that make up the cube along the X-axis. Defaults to 1.
-		 * @param segmentsH The number of segments that make up the cube along the Y-axis. Defaults to 1.
-		 * @param segmentsD The number of segments that make up the cube along the Z-axis. Defaults to 1.
+		 * @param segmentsW The number of segments that make up the cube along the X-axis.
+		 * @param segmentsH The number of segments that make up the cube along the Y-axis.
+		 * @param segmentsD The number of segments that make up the cube along the Z-axis.
 		 * @param tile6 The type of uv mapping to use. When true, a texture will be subdivided in a 2x3 grid, each used for a single face. When false, the entire image is mapped on each face.
 		 */
 		public function CubeGeometry(width : Number = 100, height : Number = 100, depth : Number = 100,
@@ -301,7 +300,7 @@ package away3d.primitives
 			inc += 2*(_segmentsW + 1)*(_segmentsD + 1);
 			
 			for (i = 0; i <= _segmentsD; i++) {
-				outer_pos = hh - i*dh;
+				outer_pos = hd - i*dd;
 
 				for (j = 0; j <= _segmentsH; j++) {
 					// left
@@ -310,7 +309,7 @@ package away3d.primitives
 					vertices[vidx++] = -hw;
 					vertexNormals[vidx] = 0;
 					vertexTangents[vidx] = 0;
-					vertices[vidx++] = -hd + j*dd;
+					vertices[vidx++] = -hh + j*dh;
 					vertexNormals[vidx] = 0;
 					vertexTangents[vidx] = -1;
 					vertices[vidx++] = outer_pos;
@@ -321,14 +320,14 @@ package away3d.primitives
 					vertices[vidx++] = hw;
 					vertexNormals[vidx] = 0;
 					vertexTangents[vidx] = 0;
-					vertices[vidx++] = -hd + j*dd;
+					vertices[vidx++] = -hh + j*dh;
 					vertexNormals[vidx] = 0;
 					vertexTangents[vidx] = 1;
 					vertices[vidx++] = outer_pos;
 
 					if (i && j) {
-						tl = inc + 2 * ((i-1) * (_segmentsD + 1) + (j-1));
-						tr = inc + 2 * (i * (_segmentsD + 1) + (j-1));
+						tl = inc + 2 * ((i-1) * (_segmentsH + 1) + (j-1));
+						tr = inc + 2 * (i * (_segmentsH + 1) + (j-1));
 						bl = tl + 2;
 						br = tr + 2;
 						
@@ -420,9 +419,9 @@ package away3d.primitives
 			tl1u = 0 * u_tile_step;
 			tl1v = 0 * v_tile_step;
 			du = u_tile_dim / _segmentsW;
-			dv = v_tile_dim / _segmentsH;
+			dv = v_tile_dim / _segmentsD;
 			for (i=0; i<=_segmentsW; i++) {
-				for (j=0; j<=_segmentsH; j++) {
+				for (j=0; j<=_segmentsD; j++) {
 					uvData[uidx++] = tl0u + i * du;
 					uvData[uidx++] = tl0v + (v_tile_dim - j * dv);
 					uvData[uidx++] = tl1u + i * du;
@@ -435,9 +434,9 @@ package away3d.primitives
 			tl0v = 1 * v_tile_step;
 			tl1u = 2 * u_tile_step;
 			tl1v = 1 * v_tile_step;
-			du = u_tile_dim / _segmentsW;
+			du = u_tile_dim / _segmentsD;
 			dv = v_tile_dim / _segmentsH;
-			for (i=0; i<=_segmentsW; i++) {
+			for (i=0; i<=_segmentsD; i++) {
 				for (j=0; j<=_segmentsH; j++) {
 					uvData[uidx++] = tl0u + i * du;
 					uvData[uidx++] = tl0v + (v_tile_dim - j * dv);

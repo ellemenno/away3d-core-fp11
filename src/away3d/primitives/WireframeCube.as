@@ -3,9 +3,7 @@
 	import flash.geom.Vector3D;
 
 	/**
-	 * A cube primitive composed of line segments.
-	 * 
-	 * @includeExample WireframeCubeExample.as
+	 * A WirefameCube primitive mesh.
 	 */
 	public class WireframeCube extends WireframePrimitiveBase
 	{
@@ -14,14 +12,14 @@
 		private var _depth : Number;
 
 		/**
-		 * Generates line segments on the edges of a cube.
+		 * Creates a new WireframeCube object.
 		 * @param width The size of the cube along its X-axis.
 		 * @param height The size of the cube along its Y-axis.
 		 * @param depth The size of the cube along its Z-axis.
-		 * @param color The color to draw the line segments with.
-		 * @param thickness The thickness of the line segments.
+		 * @param color The colour of the wireframe lines
+		 * @param thickness The thickness of the wireframe lines
 		 */
-		public function WireframeCube(width : Number, height : Number, depth : Number, color:uint = 0xFFFFFF, thickness:Number = 1) {
+		public function WireframeCube(width : Number = 100, height : Number = 100, depth : Number = 100, color:uint = 0xFFFFFF, thickness:Number = 1) {
 			super(color, thickness);
 
 			_width = width;
@@ -29,6 +27,9 @@
 			_depth = depth;
 		}
 
+		/**
+		 * The size of the cube along its X-axis.
+		 */
 		public function get width() : Number
 		{
 			return _width;
@@ -40,6 +41,9 @@
 			invalidateGeometry();
 		}
 
+		/**
+		 * The size of the cube along its Y-axis.
+		 */
 		public function get height() : Number
 		{
 			return _height;
@@ -52,6 +56,9 @@
 			invalidateGeometry();
 		}
 
+		/**
+		 * The size of the cube along its Z-axis.
+		 */
 		public function get depth() : Number
 		{
 			return _depth;
@@ -63,6 +70,9 @@
 			invalidateGeometry();
 		}
 
+		/**
+		 * @inheritDoc
+		 */
 		override protected function buildGeometry() : void
 		{
 			var v0 : Vector3D = new Vector3D();
@@ -110,8 +120,6 @@
 			v0.y = -hh;
 			v1.y = -hh;
 			updateOrAddSegment(11, v0, v1);
-
 		}
-
 	}
 }
